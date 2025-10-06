@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plan de Estudio</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Plan de Estudio">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: #f8f9fa;
+      color: #222;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-weight: 600;
+    }
+
+    #month-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    #month-header button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    #month-header button:hover {
+      background: #0056b3;
+    }
+
+    #calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      max-width: 700px;
+      width: 90%;
+      margin: 10px 0 20px 0;
+    }
+
+    .day-name {
+      font-weight: bold;
+      text-align: center;
+      background: #e9ecef;
+      border-radius: 8px;
+      padding: 8px;
+    }
+
+    .day {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .day:hover {
+      background: #e9ecef;
+    }
+
+    .today {
+      border: 2px solid #007bff;
+    }
+
+    .preview-container {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-top: 5px;
+    }
+
+    .preview-item {
+      font-size: 11px;
+      border-radius: 4px;
+      padding: 2px 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    #selected-day {
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    #task-form {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 90%;
+      margin-bottom: 20px;
+    }
+
+    input, textarea, button, select {
+      width: 100%;
+      margin-top: 10px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    #tasks {
+      max-width: 600px;
+      width: 90%;
+    }
+
+    .task {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-left: 6px solid #007bff;
+    }
+
+    .task-actions {
+      text-align: right;
+      margin-top: 8px;
+    }
+
+    .small-btn {
+      background: #dc3545;
+      padding: 5px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+
+    .small-btn.edit {
+      background: #6c757d;
+      margin-right: 6px;
+    }
+
+    .small-btn:hover {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <h1>📚 Plan de Estudio</h1>
+
+  <div id="month-header">
+    <button id="prev-month">←</button>
+    <h2 id="month-title"></h2>
+    <button id="next-month">→</button>
+  </div>
+
+  <div id="calendar"></div>
+
+  <h2 id="selected-day">Selecciona un día</h2>
+
+  <form id="task-form" style="display:none;">
+    <input type="text" id="tema" placeholder="Tema" required>
+    <input type="number" id="minutos" placeholder="Minutos" required>
+    <textarea id="resumen" placeholder="Resumen o cómo estudiarlo..."></textarea>
+    <label>Color del día (para esta tarea):</label>
+    <input type="color" id="color" value="#007bff">
+    <button type="submit">Guardar</button>
+  </form>
+
+  <div id="tasks"></div>
+
+  <script>
+    const calendar = document.getElementById('calendar');
+    const selectedDayText = document.getElementById('selected-day');
+    const taskForm = document.getElementById('task-form');
+    const tasksDiv = document.getElementById('tasks');
+    const monthTitle = document.getElementById('month-title');
+    const prevBtn = document.getElementById('prev-month');
+    const nextBtn = document.getElementById('next-month');
+
+    const monthNames = [
+      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+
+    const weekDays = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
+    let selectedDate = null;
+
+    function renderCalendar() {
+      calendar.innerHTML = "";
+      monthTitle.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+      // Nombres de los días
+      weekDays.forEach(dayName => {
+        const d = document.createElement('div');
+        d.classList.add('day-name');
+        d.textContent = dayName;
+        calendar.appendChild(d);
+      });
+
+      // Calcular el primer día del mes
+      const firstDay = new Date(currentYear, currentMonth, 1);
+      let startDay = firstDay.getDay();
+      if (startDay === 0) startDay = 7;
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+      for (let i = 1; i < startDay; i++) {
+        const empty = document.createElement('div');
+        calendar.appendChild(empty);
+      }
+
+      const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
+
+      // Días del mes
+      for (let d = 1; d <= daysInMonth; d++) {
+        const day = document.createElement('div');
+        day.classList.add('day');
+        day.innerHTML = `<div>${d}</div>`;
+
+        const key = `${currentYear}-${currentMonth+1}-${d}`;
+        const dayTasks = tasks[key] || [];
+
+        if (dayTasks.length > 0) {
+          const previews = document.createElement('div');
+          previews.classList.add('preview-container');
+
+          dayTasks.forEach(t => {
+            const item = document.createElement('div');
+            item.classList.add('preview-item');
+            item.textContent = t.tema;
+            item.style.background = t.color || "#007bff";
+            previews.appendChild(item);
+          });
+
+          day.appendChild(previews);
+        }
+
+        const today = new Date();
+        if (
+          d === today.getDate() &&
+          currentMonth === today.getMonth() &&
+          currentYear === today.getFullYear()
+        ) {
+          day.classList.add('today');
+        }
+
+        day.addEventListener('click', () => selectDay(d));
+        calendar.appendChild(day);
+      }
+    }
+
+    function selectDay(day) {
+      selectedDate = `${currentYear}-${currentMonth+1}-${day}`;
+      selectedDayText.textContent = `📅 Día seleccionado: ${selectedDate}`;
+      taskForm.style.display = 'block';
+      renderTasks();
+    }
+
+    taskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const tema = document.getElementById('tema').value.trim();
+      const minutos = document.getElementById('minutos').value.trim();
+      const resumen = document.getElementById('resumen').value.trim();
+      const color = document.getElementById('color').value;
+      if (!tema || !minutos) return;
+
+      const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
+      if (!tasks[selectedDate]) tasks[selectedDate] = [];
+      tasks[selectedDate].push({ tema, minutos, resumen, color });
+      localStorage.setItem('studyTasks', JSON.stringify(tasks));
+
+      taskForm.reset();
+      document.getElementById('color').value = color;
+      renderTasks();
+      renderCalendar();
+    });
+
+    function renderTasks() {
+      const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
+      tasksDiv.innerHTML = '';
+      const dayTasks = tasks[selectedDate] || [];
+      if (dayTasks.length === 0) {
+        tasksDiv.innerHTML = '<p>No hay temas para este día.</p>';
+        return;
+      }
+
+      dayTasks.forEach((t, i) => {
+        const div = document.createElement('div');
+        div.classList.add('task');
+        div.style.borderLeft = `6px solid ${t.color || '#007bff'}`;
+        div.innerHTML = `
+          <strong>${t.tema}</strong> — ${t.minutos} min
+          <p>${t.resumen || ''}</p>
+          <div class="task-actions">
+            <button class="small-btn edit" onclick="editTask(${i})">Editar</button>
+            <button class="small-btn" onclick="deleteTask(${i})">Eliminar</button>
+          </div>
+        `;
+        tasksDiv.appendChild(div);
+      });
+    }
+
+    window.editTask = function (index) {
+      const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
+      const dayTasks = tasks[selectedDate];
+      const task = dayTasks[index];
+      document.getElementById('tema').value = task.tema;
+      document.getElementById('minutos').value = task.minutos;
+      document.getElementById('resumen').value = task.resumen;
+      document.getElementById('color').value = task.color || '#007bff';
+      dayTasks.splice(index, 1);
+      localStorage.setItem('studyTasks', JSON.stringify(tasks));
+      renderTasks();
+      renderCalendar();
+    };
+
+    window.deleteTask = function (index) {
+      const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
+      tasks[selectedDate].splice(index, 1);
+      localStorage.setItem('studyTasks', JSON.stringify(tasks));
+      renderTasks();
+      renderCalendar();
+    };
+
+    prevBtn.addEventListener('click', () => {
+      if (currentMonth > 0) currentMonth--;
+      renderCalendar();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentMonth < 11) currentMonth++;
+      renderCalendar();
+    });
+
+    renderCalendar();
+  </script>
+</body>
+</html>
