@@ -10,173 +10,219 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
 
-  <style>
-    body {
-      font-family: "Inter", sans-serif;
-      background-color: #f8f9fa;
-      color: #222;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    h1 {
-      margin-top: 20px;
-      font-weight: 600;
-    }
-
-    #month-header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    #month-header button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    #month-header button:hover {
-      background: #0056b3;
-    }
-
-    #calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-      max-width: 700px;
-      width: 90%;
-      margin: 10px 0 20px 0;
-    }
-
-    .day-name {
-      font-weight: bold;
-      text-align: center;
-      background: #e9ecef;
-      border-radius: 8px;
-      padding: 8px;
-    }
-
-    .day {
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      min-height: 100px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .day:hover {
-      background: #e9ecef;
-    }
-
-    .today {
-      border: 2px solid #007bff;
-    }
-
-    .preview-container {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      margin-top: 5px;
-    }
-
-    .preview-item {
-      font-size: 11px;
-      border-radius: 4px;
-      padding: 2px 4px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: #fff;
-      font-weight: 500;
-    }
-
-    #selected-day {
-      font-weight: bold;
-      margin: 10px 0;
-    }
-
-    #task-form {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      max-width: 500px;
-      width: 90%;
-      margin-bottom: 20px;
-    }
-
-    input, textarea, button, select {
-      width: 100%;
-      margin-top: 10px;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-
-    button {
-      background: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    #tasks {
-      max-width: 600px;
-      width: 90%;
-    }
-
-    .task {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      border-left: 6px solid #007bff;
-    }
-
-    .task-actions {
-      text-align: right;
-      margin-top: 8px;
-    }
-
-    .small-btn {
-      background: #dc3545;
-      padding: 5px 8px;
-      font-size: 12px;
-      border-radius: 4px;
-    }
-
-    .small-btn.edit {
-      background: #6c757d;
-      margin-right: 6px;
-    }
-
-    .small-btn:hover {
-      opacity: 0.8;
-    }
-  </style>
+    <style>
+        body {
+          font-family: "Inter", sans-serif;
+          background-color: #f8f9fa;
+          color: #222;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+      
+        h1 {
+          margin-top: 20px;
+          font-weight: 600;
+          text-align: center;
+        }
+      
+        #month-header {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 10px;
+          flex-wrap: wrap;
+        }
+      
+        #month-header button {
+          background: #007bff;
+          color: white;
+          border: none;
+          padding: 6px 10px;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: 0.2s;
+        }
+      
+        #month-header button:hover {
+          background: #0056b3;
+        }
+      
+        #calendar {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 4px;
+          max-width: 700px;
+          width: 90%;
+          margin: 10px 0 20px 0;
+        }
+      
+        .day-name {
+          font-weight: bold;
+          text-align: center;
+          background: #e9ecef;
+          border-radius: 8px;
+          padding: 8px;
+        }
+      
+        .day {
+          background: white;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          padding: 8px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          min-height: 100px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+      
+        .day:hover {
+          background: #e9ecef;
+        }
+      
+        .today {
+          border: 2px solid #007bff;
+        }
+      
+        .preview-container {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          margin-top: 5px;
+        }
+      
+        .preview-item {
+          font-size: 11px;
+          border-radius: 4px;
+          padding: 2px 4px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          color: #fff;
+          font-weight: 500;
+        }
+      
+        #selected-day {
+          font-weight: bold;
+          margin: 10px 0;
+          text-align: center;
+        }
+      
+        #task-form {
+          background: white;
+          padding: 20px;
+          border-radius: 10px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+          max-width: 500px;
+          width: 90%;
+          margin-bottom: 20px;
+        }
+      
+        input, textarea, button, select {
+          width: 100%;
+          margin-top: 10px;
+          padding: 8px;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          font-size: 14px;
+          box-sizing: border-box;
+        }
+      
+        button {
+          background: #007bff;
+          color: white;
+          border: none;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+      
+        button:hover {
+          background: #0056b3;
+        }
+      
+        #tasks {
+          max-width: 600px;
+          width: 90%;
+        }
+      
+        .task {
+          background: white;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 10px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+          border-left: 6px solid #007bff;
+        }
+      
+        .task-actions {
+          text-align: right;
+          margin-top: 8px;
+        }
+      
+        .small-btn {
+          background: #dc3545;
+          padding: 5px 8px;
+          font-size: 12px;
+          border-radius: 4px;
+        }
+      
+        .small-btn.edit {
+          background: #6c757d;
+          margin-right: 6px;
+        }
+      
+        .small-btn:hover {
+          opacity: 0.8;
+        }
+      
+        /* MEDIA QUERIES PARA RESPONSIVE */
+        @media (max-width: 768px) {
+          #calendar {
+            grid-template-columns: repeat(4, 1fr);
+          }
+      
+          .day {
+            min-height: 80px;
+          }
+        }
+      
+        @media (max-width: 480px) {
+          #calendar {
+            grid-template-columns: repeat(2, 1fr);
+          }
+      
+          .day {
+            min-height: 60px;
+            padding: 6px;
+          }
+      
+          .preview-item {
+            font-size: 9px;
+            padding: 1px 3px;
+          }
+      
+          #month-header h2 {
+            font-size: 16px;
+            text-align: center;
+            width: 100%;
+          }
+      
+          #month-header button {
+            padding: 5px 8px;
+            font-size: 12px;
+          }
+      
+          #task-form {
+            padding: 15px;
+          }
+        }
+      </style>
 </head>
 <body>
   <h1>📚 Plan de Estudio</h1>
