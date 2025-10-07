@@ -259,226 +259,210 @@
   <div id="tasks"></div>
 
   <script>
-    const calendar = document.getElementById('calendar');
-    const selectedDayText = document.getElementById('selected-day');
-    const taskForm = document.getElementById('task-form');
-    const tasksDiv = document.getElementById('tasks');
-    const monthTitle = document.getElementById('month-title');
-    const prevBtn = document.getElementById('prev-month');
-    const nextBtn = document.getElementById('next-month');
-    const viewSelect = document.getElementById('view-select');
+  const calendar = document.getElementById('calendar');
+  const selectedDayText = document.getElementById('selected-day');
+  const taskForm = document.getElementById('task-form');
+  const tasksDiv = document.getElementById('tasks');
+  const monthTitle = document.getElementById('month-title');
+  const prevBtn = document.getElementById('prev-month');
+  const nextBtn = document.getElementById('next-month');
+  const viewSelect = document.getElementById('view-select');
 
-    const monthNames = [
-      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    ];
+  const monthNames = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+  const weekDays = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
-    const weekDays = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+  let currentYear = new Date().getFullYear();
+  let currentMonth = new Date().getMonth();
+  let selectedDate = null;
+  let currentView = 'month';
 
-    let currentYear = new Date().getFullYear();
-    let currentMonth = new Date().getMonth();
-    let selectedDate = null;
-    let currentView = 'month';
+  function renderCalendar() {
+    calendar.innerHTML = "";
+    monthTitle.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
 
-    function renderCalendar() {
-      calendar.innerHTML = "";
-      monthTitle.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-      const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
+    if (currentView === 'month') {
+      renderMonthView(tasks);
+    } else if (currentView === 'week') {
+      renderWeekView(tasks);
+    } else {
+      renderDayView(tasks);
+    }
+  }
 
-      if (currentView === 'month') {
-        renderMonthView(tasks);
-      } else if (currentView === 'week') {
-        renderWeekView(tasks);
-      } else {
-        renderDayView(tasks);
-      }
+  function renderMonthView(tasks) {
+    weekDays.forEach(d => {
+      const el = document.createElement('div');
+      el.classList.add('day-name');
+      el.textContent = d;
+      calendar.appendChild(el);
+    });
+
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    let startDay = firstDay.getDay();
+    if (startDay === 0) startDay = 7;
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    for (let i = 1; i < startDay; i++) {
+      calendar.appendChild(document.createElement('div'));
     }
 
-    function renderMonthView(tasks) {
-      weekDays.forEach(d => {
-        const el = document.createElement('div');
-        el.classList.add('day-name');
-        el.textContent = d;
-        calendar.appendChild(el);
-      });
-
-      const firstDay = new Date(currentYear, currentMonth, 1);
-      let startDay = firstDay.getDay();
-      if (startDay === 0) startDay = 7;
-      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-      for (let i = 1; i < startDay; i++) {
-        calendar.appendChild(document.createElement('div'));
-      }
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const key = `${currentYear}-${currentMonth+1}-${d}`;
-        const dayEl = createDayElement(d, key, tasks);
-        calendar.appendChild(dayEl);
-      }
-    }
-
-    function renderWeekView(tasks) {
-      const today = new Date();
-      const start = getStartOfWeek(today);
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(start);
-        date.setDate(start.getDate() + i);
-        const key = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
-        const dayEl = createDayElement(date.getDate(), key, tasks);
-        dayEl.innerHTML = `<div>${weekDays[i]} ${date.getDate()}</div>` + dayEl.innerHTML;
-        calendar.appendChild(dayEl);
-      }
-    }
-
-    function renderDayView(tasks) {
-      const date = selectedDate ? new Date(selectedDate) : new Date();
-      const key = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
-      const dayEl = createDayElement(date.getDate(), key, tasks);
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = `${currentYear}-${currentMonth + 1}-${d}`;
+      const dayEl = createDayElement(d, key, tasks);
       calendar.appendChild(dayEl);
     }
+  }
 
-    function createDayElement(dayNumber, key, tasks) {
-      const day = document.createElement('div');
-      day.classList.add('day');
-      day.innerHTML = `<div>${dayNumber}</div>`;
-      const dayTasks = tasks[key] || [];
-
-      if (dayTasks.length > 0) {
-        const previews = document.createElement('div');
-        previews.classList.add('preview-container');
-        dayTasks.forEach(t => {
-          const item = document.createElement('div');
-          item.classList.add('preview-item');
-          item.textContent = t.tema;
-          item.style.background = t.color || "#007bff";
-          previews.appendChild(item);
-        });
-        day.appendChild(previews);
-      }
-
-      const today = new Date();
-      if (
-        dayNumber === today.getDate() &&
-        currentMonth === today.getMonth() &&
-        currentYear === today.getFullYear()
-      ) {
-        day.classList.add('today');
-      }
-
-      day.addEventListener('click', () => selectDay(key));
-      return day;
+  function renderWeekView(tasks) {
+    const today = new Date();
+    const start = getStartOfWeek(today);
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      const key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+      const dayEl = createDayElement(date.getDate(), key, tasks);
+      dayEl.innerHTML = `<div>${weekDays[i]} ${date.getDate()}</div>` + dayEl.innerHTML;
+      calendar.appendChild(dayEl);
     }
+  }
 
-    function selectDay(key) {
-      selectedDate = key;
-      selectedDayText.textContent = `📅 Día seleccionado: ${key}`;
-      taskForm.style.display = 'block';
-      renderTasks();
-    }
+  function renderDayView(tasks) {
+    const date = selectedDate ? new Date(selectedDate) : new Date();
+    const key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+    const dayEl = createDayElement(date.getDate(), key, tasks);
+    calendar.appendChild(dayEl);
+  }
 
-    taskForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const tema = document.getElementById('tema').value.trim();
-      const minutos = document.getElementById('minutos').value.trim();
-      const resumen = document.getElementById('resumen').value.trim();
-      const color = document.getElementById('color').value;
-      if (!tema || !minutos) return;
-      const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
-      if (!tasks[selectedDate]) tasks[selectedDate] = [];
-      tasks[selectedDate].push({ tema, minutos, resumen, color });
-      localStorage.setItem('studyTasks', JSON.stringify(tasks));
-      taskForm.reset();
-      renderTasks();
-      renderCalendar();
-    });
+  function createDayElement(dayNumber, key, tasks) {
+    const day = document.createElement('div');
+    day.classList.add('day');
+    day.innerHTML = `<div>${dayNumber}</div>`;
+    const dayTasks = tasks[key] || [];
 
-    function renderTasks() {
-      const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
-      tasksDiv.innerHTML = '';
-      const dayTasks = tasks[selectedDate] || [];
-      if (dayTasks.length === 0) {
-        tasksDiv.innerHTML = '<p>No hay temas para este día.</p>';
-        return;
-      }
-      dayTasks.forEach((t, i) => {
-        const div = document.createElement('div');
-        div.classList.add('task');
-        div.style.borderLeft = `6px solid ${t.color || '#007bff'}`;
-        div.innerHTML = `
-          <strong>${t.tema}</strong> — ${t.minutos} min
-          <p>${t.resumen || ''}</p>
-          <div class="task-actions">
-            <button class="small-btn edit" onclick="editTask(${i})">Editar</button>
-            <button class="small-btn" onclick="deleteTask(${i})">Eliminar</button>
-          </div>`;
-        tasksDiv.appendChild(div);
+    if (dayTasks.length > 0) {
+      const previews = document.createElement('div');
+      previews.classList.add('preview-container');
+      dayTasks.forEach(t => {
+        const item = document.createElement('div');
+        item.classList.add('preview-item');
+        item.textContent = t.tema;
+        item.style.background = t.color || "#007bff";
+        previews.appendChild(item);
       });
+      day.appendChild(previews);
     }
 
-    function getStartOfWeek(date) {
-      const day = date.getDay();
-      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-      return new Date(date.setDate(diff));
+    const today = new Date();
+    if (
+      dayNumber === today.getDate() &&
+      currentMonth === today.getMonth() &&
+      currentYear === today.getFullYear()
+    ) {
+      day.classList.add('today');
     }
 
-    window.editTask = index => {
-      const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
-      const dayTasks = tasks[selectedDate];
-      const t = dayTasks[index];
-      document.getElementById('tema').value = t.tema;
-      document.getElementById('minutos').value = t.minutos;
-      document.getElementById('resumen').value = t.resumen;
-      document.getElementById('color').value = t.color;
-      dayTasks.splice(index, 1);
-      localStorage.setItem('studyTasks', JSON.stringify(tasks));
-      renderTasks();
-      renderCalendar();
-    };
+    day.addEventListener('click', () => selectDay(key));
+    return day;
+  }
 
-    window.deleteTask = index => {
-      const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
-      tasks[selectedDate].splice(index, 1);
-      localStorage.setItem('studyTasks', JSON.stringify(tasks));
-      renderTasks();
-      renderCalendar();
-    };
+  function selectDay(key) {
+    selectedDate = key;
+    selectedDayText.textContent = `📅 Día seleccionado: ${key}`;
+    taskForm.style.display = 'block';
+    renderTasks();
+  }
 
-    prevBtn.addEventListener('click', () => {
-      if (currentMonth > 0) currentMonth--;
-      else { currentMonth = 11; currentYear--; }
-      renderCalendar();
-    });
-
-    nextBtn.addEventListener('click', () => {
-      if (currentMonth < 11) currentMonth++;
-      else { currentMonth = 0; currentYear++; }
-      renderCalendar();
-    });
-
-    viewSelect.addEventListener('change', e => {
-      currentView = e.target.value;
-      renderCalendar();
-    });
-
+  taskForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const tema = document.getElementById('tema').value.trim();
+    const minutos = document.getElementById('minutos').value.trim();
+    const resumen = document.getElementById('resumen').value.trim();
+    const color = document.getElementById('color').value;
+    if (!tema || !minutos) return;
+    const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
+    if (!tasks[selectedDate]) tasks[selectedDate] = [];
+    tasks[selectedDate].push({ tema, minutos, resumen, color });
+    localStorage.setItem('studyTasks', JSON.stringify(tasks));
+    taskForm.reset();
+    renderTasks();
     renderCalendar();
-    tem('studyTasks', JSON.stringify(tasks));
-      renderTasks();
-      renderCalendar();
-    };
+  });
 
-    prevBtn.addEventListener('click', () => {
-      if (currentMonth > 0) currentMonth--;
-      renderCalendar();
+  function renderTasks() {
+    const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
+    tasksDiv.innerHTML = '';
+    const dayTasks = tasks[selectedDate] || [];
+    if (dayTasks.length === 0) {
+      tasksDiv.innerHTML = '<p>No hay temas para este día.</p>';
+      return;
+    }
+    dayTasks.forEach((t, i) => {
+      const div = document.createElement('div');
+      div.classList.add('task');
+      div.style.borderLeft = `6px solid ${t.color || '#007bff'}`;
+      div.innerHTML = `
+        <strong>${t.tema}</strong> — ${t.minutos} min
+        <p>${t.resumen || ''}</p>
+        <div class="task-actions">
+          <button class="small-btn edit" onclick="editTask(${i})">Editar</button>
+          <button class="small-btn" onclick="deleteTask(${i})">Eliminar</button>
+        </div>`;
+      tasksDiv.appendChild(div);
     });
+  }
 
-    nextBtn.addEventListener('click', () => {
-      if (currentMonth < 11) currentMonth++;
-      renderCalendar();
-    });
+  function getStartOfWeek(date) {
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(date.setDate(diff));
+  }
 
+  window.editTask = index => {
+    const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
+    const dayTasks = tasks[selectedDate];
+    const t = dayTasks[index];
+    document.getElementById('tema').value = t.tema;
+    document.getElementById('minutos').value = t.minutos;
+    document.getElementById('resumen').value = t.resumen;
+    document.getElementById('color').value = t.color;
+    dayTasks.splice(index, 1);
+    localStorage.setItem('studyTasks', JSON.stringify(tasks));
+    renderTasks();
     renderCalendar();
-  </script>
+  };
+
+  window.deleteTask = index => {
+    const tasks = JSON.parse(localStorage.getItem('studyTasks') || '{}');
+    tasks[selectedDate].splice(index, 1);
+    localStorage.setItem('studyTasks', JSON.stringify(tasks));
+    renderTasks();
+    renderCalendar();
+  };
+
+  prevBtn.addEventListener('click', () => {
+    if (currentMonth > 0) currentMonth--;
+    else { currentMonth = 11; currentYear--; }
+    renderCalendar();
+  });
+
+  nextBtn.addEventListener('click', () => {
+    if (currentMonth < 11) currentMonth++;
+    else { currentMonth = 0; currentYear++; }
+    renderCalendar();
+  });
+
+  viewSelect.addEventListener('change', e => {
+    currentView = e.target.value;
+    renderCalendar();
+  });
+
+  renderCalendar();
+</script>
+
 </body>
 </html>
 
